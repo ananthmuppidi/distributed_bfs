@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
-"""mapper.py for BFS iteration"""
 import sys
 
-# mapper needs to run one iteration of a bfs, and emit:
-#   1. Any updates made to distances
-#   2. The entire adjacency matrix, so that the output file contains that information still 
-
+SOURCE_NODE = '1'  # Define the source node
+MAX_DISTANCE = 404  # Infinity representation
 
 def emit(key, value):
-    print(f"{key} {value}")
+    print(f"{key}\t{value}")
+try:
 
-for line in sys.stdin:
-    line = line.strip()
-    node_id, value = line.split(' ', 1)
-    distance, neighbours = value.split('|')
-    distance = int(distance)
-    neighbours = neighbours.split(',') if neighbours else []
-    # if we know that the distance of the current node is less than infinity (represented by 404), we can update the distances of its neighbours
-    if distance <  404:
-        # then emit the updated distance and the adjacency list
-        for neighbour in neighbours:
-            # Emit message with updated distance for neighbors, emit: node_id distancce,adjacency_list
-            emit(neighbour, f"{distance + 1}@")
-    emit(node_id, f"{distance}|{','.join(neighbours)}")
+    for line in sys.stdin:
+        line = line.strip()
+        if '|' in line:
+            node_id, value = line.split(' ', 1)
+            distance, neighbours = value.split('|', 1)
+            distance = int(distance)
+        else:
+            # Processing initial input, no '|' found
+            parts = line.split()
+            node_id = parts[0]
+            neighbours = parts[1:]
+
+        # Set initial distance for the source node or others
+            distance = 0 if node_id == SOURCE_NODE else MAX_DISTANCE
+        # Convert neighbours list to a string for consistent output
+            neighbours = ','.join(neighbours)
+
+    # Emit the current node with its distance and adjacency list
+        emit(node_id, f"{distance}|{neighbours}")
+
+    # If this is not the initial input, also check and emit updates for neighbours
+        if distance < MAX_DISTANCE:
+            for neighbour in neighbours.split(','):
+            # Emit potential distance update for each neighbour
+                emit(neighbour, f"{distance + 1}@")
+except Exception as e:
+    sys.stderr.write(f"ERROR: {str(e)}\n")
